@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<!--- VIC Model Web Based Visualization: Dynamic web based framework for visualization of Model Output
+ // Written by Nishan Kumar Biswas
+ // PhD Student and Graduate Research Assistant
+ // Department of Civil and Environmental Engineering, University of Washington
+ // nbiswas@uw.edu, nishan.wre.buet@gmail.com
+ // www.students.washington.edu/nbiswas
+-->
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>How to use</title>
+		<link rel="icon" href="img/favicon.png">
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="description" content="" />
+		<meta name="keywords" content="" />
+		<!--[if lte IE 8]><script src="js/html5shiv.js"></script><![endif]-->
+		<script src="js/jquery.min.js"></script>
+		<script src="js/skel.min.js"></script>
+		<script src="js/skel-layers.min.js"></script>
+		<script src="js/init.js"></script>
+		<style>
+		 .floating-menu {
+			font-family: sans-serif;
+			font-weight: bold;
+			background: transparent;
+			color: black;
+			
+			width: 100%;
+			z-index: 50;
+			position: fixed;
+			left: 0%;
+		  }
+		</style>
+		<noscript>
+			<link rel="stylesheet" href="css/skel.css" />
+			<link rel="stylesheet" href="css/style.css" />
+			<link rel="stylesheet" href="css/style-xlarge.css" />
+		</noscript>
+	</head>
+	<body>
+
+		<!-- Header -->
+		<div class=floating-menu>
+		<header id="header">
+			<h1><a href="index.html">FlASH FLOOD FORECASTING AND EARLY WARNING SYSTEM</a></h1>
+			<nav id="nav">
+			<ul>
+				<li><a href="http://www.bwdb.gov.bd"   class="button alt fit small">BWDB Home</a></li>
+				<li><a href="acknowledgement.html"  class="button special">Acknowledgements</a></li>
+				<li><a href="contactus.html"  class="button alt fit small">Contact Us</a></li>
+			</ul>
+			</nav>
+		</header>
+		</div>
+
+		<!-- Main -->
+		<section id="main" class="wrapper">
+			<div class="container">
+			<header class="major">
+			<h2> How to use the Flash Flood System Portal</h2>
+			<div class="12u 12u(1)" align="left">
+				<h4>Visualization of Forecast Flood Map</h4>
+				<ul>
+					<li>Select the forecast precipitation type used in the framework</li>
+					<li>Select the visualization parameter</li>
+					<li>Select the lead-time for which you want to visualize the datasets</li>
+					<li>Click "view" to visualize the flood map over the map. </li>
+					<li>Forecast date of flood map along map legend will be shown on top left corner of the map.</li>
+				</ul>
+			</div>	
+			
+			<div class="12u 12u(1)" align="left">
+				<h4>Visualization of Forecasted Precipitation</h4>
+				<ul>
+					<li>Select the forecast precipitation type used in the framework</li>
+					<li>Select the visualization parameter</li>
+					<li>Select the lead-time for which you want to visualize the datasets</li>
+					<li>Click view to view the precipitation raster dataset over the map. </li>
+					<li>Forecast precipitation date, type of precipitation and legend will be shown on top left corner of the map.</li>
+				</ul>
+			</div>
+			
+			<div class="12u 12u(1)" align="left">
+				<h4>Visualization of Forecasted WL Timeseries of Stations</h4>
+				<ul>
+					<li>Yellow colored traingles are the locations of forecast WL stations</li>
+					<li>Click on any location to visualize station's timeseries (nowcast and forecast)</li>
+					<li>A timeseries chart will be shown for clicked station</li>
+					<li>Station's average and climatology data added, click on the title of series to plot them in the chart.</li>
+				</ul>
+			</div>
+			
+			<div class="12u 12u(1)" align="left">
+				<h4>Visualization of Forecasted Inflow at the Boundaries</h4>
+				<ul>
+					<li>Blue colored circles are the locations of inflow boundaries.</li>
+					<li>Click on any of the location to visualize inflow timeseries (nowcast and forecast)</li>
+					<li>Nowcast and forecast discharge data will be shown for selected location</li>
+				</ul>
+			</div>
+			</header>
+		</section>
+		<footer id="footer">
+			<div class="container">
+				<div class="row">
+					<div class="8u 12u$(medium)">
+						<ul class="copyright">
+							<li>&copy; Co-developed by <a href="http://www.bwdb.gov.bd">BWDB</a> with Technical Assistance from <a href="http://www.saswe.net">SASWE Research Group</a> and <a href="http://students.washington.edu/nbiswas">Nishan Kumar Biswas</a><br><h5><font color="#858585"><a href="http://www.washington.edu/">University of Washington</a>, USAID-PEER, NASA Applied Science Program (DISASTER and WATER), <a href="http://www.theivanhoefoundation.com/">The Ivanhoe Foundation</a></font></h5></li>
+						</ul>
+					</div>
+					<div class="4u$ 12u$(medium)">
+						<ul class="icons">
+							<li>
+								<a href="http://www.saswe.net"><img src="http://saswe.net/wp-content/themes/saswe/images/satellite.png" height="50" width="50"></a>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</footer>
+	</body>
+</html>

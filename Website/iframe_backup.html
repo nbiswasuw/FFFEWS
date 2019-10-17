@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		
+		<title>Layers Control Tutorial - Leaflet</title>
+
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="stylesheet" href="css/skel.css" />
+		<link rel="stylesheet" href="css/style.css" />
+
+		<link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico" />
+		<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" type="text/css">
+		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css"/>
+		<link rel="stylesheet" href="https://rawgit.com/socib/Leaflet.TimeDimension/master/dist/leaflet.timedimension.control.min.css"/>
+		<script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"></script>
+		<script src="js/iso8601.js"></script>
+		<script src="js/jquery.min.js"></script>
+
+		<script src="js/skel.min.js"></script>
+		<script src="js/skel-layers.min.js"></script>
+		<script src="js/init.js"></script>			
+		 <link rel="stylesheet" href="css/leaflet.fullscreen.css" />
+		 <script src="js/Leaflet.fullscreen.js"></script>
+		
+		<style>
+		html, body {
+			height: 700px;
+			margin: 0;
+		}
+		#map {
+			width: 100%;
+			height: 650px;
+		}
+
+		
+		.legend {
+			line-height: 18px;
+			color: #333333;
+			font-family: 'Open Sans', Helvetica, sans-serif;
+			padding: 6px 8px;
+			background: white;
+			background: rgba(255, 255, 255, 0.8);
+			box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+			border-radius: 5px;
+		}
+
+		.legend i {
+			width: 18px;
+			height: 18px;
+			float: left;
+			margin-right: 8px;
+			opacity: 0.7;
+		}
+
+		.legend img {
+			width: 220px;
+			height: auto;
+			float: left;
+		}
+
+		.legend p {
+			font-size: 12px;
+			line-height: 18px;
+			margin: 0;
+		}
+		</style>
+		
+	</head>
+	<body>
+			<!-- Main -->
+		<section id="main" class="wrapper" style="padding: 0em 0em 0em">
+		
+		<div class="row">	
+			<div class="6u 12u$(3)">
+				<ul class="actions fit">
+				<li>
+					<div class="select-wrapper">
+						<select name="hindproduct" id="hindproduct"">
+							<option value="-1">- Hindcast Precipitation -</option>
+							<option value="imerg">IMERG</option>
+						</select>
+					</div>
+				</li>
+				<li>
+					<div class="select-wrapper">
+						<select name="foreproduct" id="foreproduct">
+							<option value="-1">- Forecast Precipitation -</option>
+							<option value="gfs">GFS Precipitation</option>
+							<option value="ecmwf">ECMWF Precipitation</option>
+						</select>
+					</div>
+				</li>
+				</ul>
+			</div>
+			<div class="6u 12u$(2)">
+				<ul class="actions fit">
+				<li>
+					<div class="select-wrapper">
+						<select name="visparam" id="visparam"">
+							<option value="-1">- Visualization Parameter -</option>
+							<option value="foreprecip">Forecast Precipitation</option>
+							<option value="foreflood">Flood Inundation</option>
+						</select>
+					</div>
+				</li>
+				<li>
+					<div class="select-wrapper">
+						<select name="leadtime" id="leadtime" onchange="notifychange()">
+							<option value="-1">- Lead Time -</option>
+							<option value="006">06 Hour</option>
+							<option value="012">12 Hour</option>
+							<option value="018">18 Hour</option>
+							<option value="024">24 Hour</option>
+							<option value="036">36 Hour</option>
+							<option value="048">2 Day</option>
+							<option value="072">3 Day</option>
+							<option value="096">4 Day</option>
+							<option value="120">5 Day</option>
+						</select>
+					</div>
+				</li>
+				<li>
+					<div class="row">
+						<div id="back" style="width: 20%;" onclick="backclick()"><img src="./img/back.jpg" alt="Back" width="47px" height="47px"></div>
+						<div id="play" style="width: 20%;" onclick="playclick()"><img src="./img/play.jpg" alt="Play" width="47px" height="47px"></div>
+						<div id="stop" style="width: 20%;" onclick="stopclick()"><img src="./img/stop.jpg" alt="Play" width="47px" height="47px"></div>
+						<div id="next" style="width: 20%;" onclick="nextclick()"><img src="./img/next.jpg" alt="Next" width="47px" height="47px"></div>
+					</div>
+				</li>
+				</ul>
+			</div>
+		</div>
+		<div id='map'></div>
+		</section>
+		
+		<script src="js/basinextent.geojson"></script>
+		<script src="js/rivernetwork.geojson"></script>
+		<script src="js/haors.geojson"></script>
+		<script src="js/leaflet-panel-layers.js"></script>
+		<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+		<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+		<script src="js/slidercontrol.js"></script>
+		
+        <script type="text/javascript" src="https://cdn.rawgit.com/nezasa/iso8601-js-period/master/iso8601.min.js"></script>
+        <script type="text/javascript" src="https://rawgit.com/felixge/node-dateformat/master/lib/dateformat.js"></script>
+		<script type="text/javascript" src="http://apps.socib.es/Leaflet.TimeDimension/src/leaflet.timedimension.js"></script>
+        <script type="text/javascript" src="http://apps.socib.es/Leaflet.TimeDimension/src/leaflet.timedimension.util.js"></script>
+        <script type="text/javascript" src="http://apps.socib.es/Leaflet.TimeDimension/src/leaflet.timedimension.layer.js"></script>
+        <script type="text/javascript" src="http://apps.socib.es/Leaflet.TimeDimension/src/leaflet.timedimension.player.js"></script>
+        <script type="text/javascript" src="http://apps.socib.es/Leaflet.TimeDimension/src/leaflet.timedimension.control.js"></script>
+		
+		
+		
+		<script>
+		
+		L.TimeDimension.Layer.ImageOverlay = L.TimeDimension.Layer.extend({
+		initialize: function(layer, options) {
+			L.TimeDimension.Layer.prototype.initialize.call(this, layer, options);
+			this._layers = {};
+			this._defaultTime = 0;
+			this._timeCacheBackward = this.options.cacheBackward || this.options.cache || 0;
+			this._timeCacheForward = this.options.cacheForward || this.options.cache || 0;
+			this._getUrlFunction = this.options.getUrlFunction;
+
+			this._baseLayer.on('load', (function() {
+				this._baseLayer.setLoaded(true);
+				this.fire('timeload', {
+					time: this._defaultTime
+				});
+			}).bind(this));
+		},
+
+		eachLayer: function(method, context) {
+			for (var prop in this._layers) {
+				if (this._layers.hasOwnProperty(prop)) {
+					method.call(context, this._layers[prop]);
+				}
+			}
+			return L.TimeDimension.Layer.prototype.eachLayer.call(this, method, context);
+		},
+
+		_onNewTimeLoading: function(ev) {
+			var layer = this._getLayerForTime(ev.time);
+			if (!this._map.hasLayer(layer)) {
+				this._map.addLayer(layer);
+			}
+		},
+
+		isReady: function(time) {
+			var layer = this._getLayerForTime(time);
+			return layer.isLoaded();
+		},
+
+		_update: function() {
+			if (!this._map)
+				return;
+			var time = map.timeDimension.getCurrentTime();
+			var layer = this._getLayerForTime(time);
+			if (this._currentLayer == null) {
+				this._currentLayer = layer;
+			}
+			if (!this._map.hasLayer(layer)) {
+				this._map.addLayer(layer);
+			} else {
+				this._showLayer(layer, time);
+			}
+		},
+
+		_showLayer: function(layer, time) {
+			if (this._currentLayer && this._currentLayer !== layer) {
+				this._currentLayer.hide();
+				this._map.removeLayer(this._currentLayer);
+			}
+			layer.show();
+			if (this._currentLayer && this._currentLayer === layer) {
+				return;
+			}
+			this._currentLayer = layer;
+			// Cache management
+			var times = this._getLoadedTimes();
+			var strTime = String(time);
+			var index = times.indexOf(strTime);
+			var remove = [];
+			// remove times before current time
+			if (this._timeCacheBackward > -1) {
+				var objectsToRemove = index - this._timeCacheBackward;
+				if (objectsToRemove > 0) {
+					remove = times.splice(0, objectsToRemove);
+					this._removeLayers(remove);
+				}
+			}
+			if (this._timeCacheForward > -1) {
+				index = times.indexOf(strTime);
+				var objectsToRemove = times.length - index - this._timeCacheForward - 1;
+				if (objectsToRemove > 0) {
+					remove = times.splice(index + this._timeCacheForward + 1, objectsToRemove);
+					this._removeLayers(remove);
+				}
+			}
+		},
+
+		_getLayerForTime: function(time) {
+			if (time == 0 || time == this._defaultTime) {
+				return this._baseLayer;
+			}
+			if (this._layers.hasOwnProperty(time)) {
+				return this._layers[time];
+			}
+			var url = this._getUrlFunction(this._baseLayer.getURL(), time);
+			imageBounds = this._baseLayer._bounds;
+
+			var newLayer = L.imageOverlay(url, imageBounds, this._baseLayer.options);
+			this._layers[time] = newLayer;
+			newLayer.on('load', (function(layer, time) {
+				layer.setLoaded(true);
+				if (map.timeDimension && time == map.timeDimension.getCurrentTime() && !map.timeDimension.isLoading()) {
+					this._showLayer(layer, time);
+				}
+				this.fire('timeload', {
+					time: time
+				});
+			}).bind(this, newLayer, time));
+
+			// Hack to hide the layer when added to the map.
+			// It will be shown when timeload event is fired from the map (after all layers are loaded)
+			newLayer.onAdd = (function(map) {
+				Object.getPrototypeOf(this).onAdd.call(this, map);
+				this.hide();
+			}).bind(newLayer);
+			return newLayer;
+		},
+
+		_getLoadedTimes: function() {
+			var result = [];
+			for (var prop in this._layers) {
+				if (this._layers.hasOwnProperty(prop)) {
+					result.push(prop);
+				}
+			}
+			return result.sort();
+		},
+
+		_removeLayers: function(times) {
+			for (var i = 0, l = times.length; i < l; i++) {
+				this._map.removeLayer(this._layers[times[i]]);
+				delete this._layers[times[i]];
+			}
+		},
+
+			});
+
+			L.timeDimension.layer.imageOverlay = function(layer, options) {
+				return new L.TimeDimension.Layer.ImageOverlay(layer, options);
+			};
+
+			L.ImageOverlay.include({
+				_visible: true,
+				_loaded: false,
+
+				_originalUpdate: L.imageOverlay.prototype._update,
+
+				_update: function() {
+					if (!this._visible && this._loaded) {
+						return;
+					}
+					this._originalUpdate();
+				},
+
+				setLoaded: function(loaded) {
+					this._loaded = loaded;
+				},
+
+				isLoaded: function() {
+					return this._loaded;
+				},
+
+				hide: function() {
+					this._visible = false;
+					if (this._image && this._image.style)
+						this._image.style.display = 'none';
+				},
+
+				show: function() {
+					this._visible = true;
+					if (this._image && this._image.style)
+						this._image.style.display = 'block';
+				},
+
+				getURL: function() {
+					return this._url;
+				},
+
+			});
+				
+
+		
+			// Defining static layers
+			var basinbndstyle = {"color": "#ff7800", "weight": 5, "opacity": 0.75};
+			var basinextent = L.geoJSON(basinextent, {style: basinbndstyle});
+			var haorstyle = {"color": "#ff7800", "weight": 3, "opacity": 0.9};
+			var haors = L.geoJSON(haors, {style: haorstyle});
+			var rivstyle = {"color": "#4262f4", "weight": 2, "opacity": 0.65};
+			var rivers = L.geoJSON(rivernetwork, {style: rivstyle});
+			
+			
+			// Defining forecast station locations
+			var wlicon = L.icon({
+				iconUrl: 'img/marker_wl.png',
+				iconSize:     [15, 15], // size of the icon
+				popupAnchor:  [0, 0] // point from which the popup should open relative to the iconAnchor
+			});
+			
+			var wlstations = L.layerGroup();
+			
+			new L.marker([24.876330, 92.488923],{icon: wlicon}).bindTooltip("Amalshid").bindPopup('<iframe width="700" height="420" src="amalshid.html" frameborder="0"></iframe>').addTo(wlstations),
+			new L.marker([24.042794, 90.992776],{icon: wlicon}).bindTooltip('Bhairab Bazar').bindPopup('<iframe width="700" height="420" src="bhairabbazar.html" frameborder="0"></iframe>').addTo(wlstations),
+			new L.marker([25.004223, 92.259987],{icon: wlicon}).bindTooltip('Kanaighat').bindPopup('<iframe width="700" height="420" src="kanaighat.html" frameborder="0"></iframe>').addTo(wlstations),
+			new L.marker([25.087706, 92.118330],{icon: wlicon}).bindTooltip('Sarighat').bindPopup('<iframe width="700" height="420" src="sarighat.html" frameborder="0"></iframe>').addTo(wlstations);
+			new L.marker([24.887983, 92.190389],{icon: wlicon}).bindTooltip('Sheola').bindPopup('<iframe width="700" height="420" src="sheola.html" frameborder="0"></iframe>').addTo(wlstations);
+			new L.marker([24.392752, 91.410342],{icon: wlicon}).bindTooltip('Habiganj').bindPopup('<iframe width="700" height="420" src="habiganj.html" frameborder="0"></iframe>').addTo(wlstations);
+			new L.marker([24.428089, 91.937553],{icon: wlicon}).bindTooltip('Manu Railway Bridge').bindPopup('<iframe width="700" height="420" src="manurb.html" frameborder="0"></iframe>').addTo(wlstations);
+			new L.marker([24.496424, 91.774876],{icon: wlicon}).bindTooltip('Moulvibazar').bindPopup('<iframe width="700" height="420" src="moulvibazar.html" frameborder="0"></iframe>').addTo(wlstations);
+			new L.marker([24.628307, 91.681667],{icon: wlicon}).bindTooltip('Sherpur').bindPopup('<iframe width="700" height="420" src="sherpur.html" frameborder="0"></iframe>').addTo(wlstations);
+			new L.marker([24.888834, 91.849452],{icon: wlicon}).bindTooltip('Sylhet').bindPopup('<iframe width="700" height="420" src="sylhet.html" frameborder="0"></iframe>').addTo(wlstations);
+			new L.marker([25.009779, 90.652813],{icon: wlicon}).bindTooltip('Jariajanjail').bindPopup('<iframe width="700" height="420" src="jariajanjail.html" frameborder="0"></iframe>').addTo(wlstations);
+			new L.marker([25.071634, 91.405531],{icon: wlicon}).bindTooltip('Sunamganj').bindPopup('<iframe width="700" height="420" src="sunamganj.html" frameborder="0"></iframe>').addTo(wlstations);
+			new L.marker([25.123256, 90.661579],{icon: wlicon}).bindTooltip('Durgapur').bindPopup('<iframe width="700" height="420" src="durgapur.html" frameborder="0"></iframe>').addTo(wlstations);
+			new L.marker([25.192257, 90.220624],{icon: wlicon}).bindTooltip('Nakuagaon').bindPopup('<iframe width="700" height="420" src="nakuagaon.html" frameborder="0"></iframe>').addTo(wlstations);
+			new L.marker([25.191499, 91.250119],{icon: wlicon}).bindTooltip('Laurergorh').bindPopup('<iframe width="700" height="420" src="laurergarh.html" frameborder="0"></iframe>').addTo(wlstations);
+			new L.marker([24.098525, 91.596150],{icon: wlicon}).bindTooltip('Ballah').bindPopup('<iframe width="700" height="420" src="ballah.html" frameborder="0"></iframe>').addTo(wlstations);
+			new L.marker([24.352029, 91.845820],{icon: wlicon}).bindTooltip('Kamalganj').bindPopup('<iframe width="700" height="420" src="kamalganj.html" frameborder="0"></iframe>').addTo(wlstations);
+			new L.marker([24.691644, 91.389698],{icon: wlicon}).bindTooltip('Markuli').bindPopup('<iframe width="700" height="420" src="markuli.html" frameborder="0"></iframe>').addTo(wlstations);
+			new L.marker([24.702170, 91.110489],{icon: wlicon}).bindTooltip('Khaliajuri').bindPopup('<iframe width="700" height="420" src="khaliajuri.html" frameborder="0"></iframe>').addTo(wlstations);
+			
+			var qicon = L.icon({
+				iconUrl: 'img/marker_q.png',
+				iconSize:     [15, 15], // size of the icon
+				popupAnchor:  [0, 0] // point from which the popup should open relative to the iconAnchor
+			});
+			var qstations = L.layerGroup();
+			
+			new L.marker([24.083314, 91.595777],{icon: qicon}).bindTooltip("Ballah (217)").bindPopup('<iframe width="700" height="420" src="amalshid.html" frameborder="0"></iframe>').addTo(qstations),
+			new L.marker([24.045936, 90.998443],{icon: qicon}).bindTooltip('Bhairab Bazar (196)').bindPopup('<iframe width="700" height="420" src="bhairabbazar.html" frameborder="0"></iframe>').addTo(qstations),
+			new L.marker([24.909329, 92.496260],{icon: qicon}).bindTooltip('Haziganj (76)').bindPopup('<iframe width="700" height="420" src="kanaighat.html" frameborder="0"></iframe>').addTo(qstations),
+			new L.marker([24.876108, 92.490298],{icon: qicon}).bindTooltip('Amalshid (110)').bindPopup('<iframe width="700" height="420" src="sarighat.html" frameborder="0"></iframe>').addTo(qstations);
+			new L.marker([24.839108, 92.367031],{icon: qicon}).bindTooltip('Karimganj (119)').bindPopup('<iframe width="700" height="420" src="sheola.html" frameborder="0"></iframe>').addTo(qstations);
+			new L.marker([25.054708, 92.341583],{icon: qicon}).bindTooltip('Lubachara (58)').bindPopup('<iframe width="700" height="420" src="habiganj.html" frameborder="0"></iframe>').addTo(qstations);
+			new L.marker([25.112939, 92.179949],{icon: qicon}).bindTooltip('Lalakhal (38)').bindPopup('<iframe width="700" height="420" src="manurb.html" frameborder="0"></iframe>').addTo(qstations);
+			new L.marker([25.182031, 92.074675],{icon: qicon}).bindTooltip('Lourergarh (30)').bindPopup('<iframe width="700" height="420" src="moulvibazar.html" frameborder="0"></iframe>').addTo(qstations);
+			new L.marker([24.225626, 91.838067],{icon: qicon}).bindTooltip('Patrokhola (206)').bindPopup('<iframe width="700" height="420" src="sherpur.html" frameborder="0"></iframe>').addTo(qstations);
+			new L.marker([24.319208, 91.994712],{icon: qicon}).bindTooltip('Sharifpur (187)').bindPopup('<iframe width="700" height="420" src="sylhet.html" frameborder="0"></iframe>').addTo(qstations);
+			new L.marker([24.424240, 92.167318],{icon: qicon}).bindTooltip('Fultola (148)').bindPopup('<iframe width="700" height="420" src="jariajanjail.html" frameborder="0"></iframe>').addTo(qstations);
+			new L.marker([25.201270, 90.250813],{icon: qicon}).bindTooltip('Nakuagaon (47)').bindPopup('<iframe width="700" height="420" src="sunamganj.html" frameborder="0"></iframe>').addTo(qstations);
+			new L.marker([25.223832, 90.121744],{icon: qicon}).bindTooltip('Malijhi (26)').bindPopup('<iframe width="700" height="420" src="durgapur.html" frameborder="0"></iframe>').addTo(qstations);
+			new L.marker([25.217631, 90.181507],{icon: qicon}).bindTooltip('Chelakhali (25)').bindPopup('<iframe width="700" height="420" src="nakuagaon.html" frameborder="0"></iframe>').addTo(qstations);
+			new L.marker([25.184540, 90.656756],{icon: qicon}).bindTooltip('Bijoypur (66)').bindPopup('<iframe width="700" height="420" src="laurergarh.html" frameborder="0"></iframe>').addTo(qstations);
+			new L.marker([25.175801, 90.508422],{icon: qicon}).bindTooltip('Nitai (68)').bindPopup('<iframe width="700" height="420" src="ballah.html" frameborder="0"></iframe>').addTo(qstations);
+			new L.marker([25.168324, 91.385547],{icon: qicon}).bindTooltip('Sunamganj (39)').bindPopup('<iframe width="700" height="420" src="kamalganj.html" frameborder="0"></iframe>').addTo(qstations);
+			new L.marker([25.144201, 91.632555],{icon: qicon}).bindTooltip('Jadukata (49)').bindPopup('<iframe width="700" height="420" src="markuli.html" frameborder="0"></iframe>').addTo(qstations);
+			new L.marker([25.173674, 91.754338],{icon: qicon}).bindTooltip('Doyar Bazar (41)').bindPopup('<iframe width="700" height="420" src="khaliajuri.html" frameborder="0"></iframe>').addTo(qstations);
+			new L.marker([25.177591, 91.885676],{icon: qicon}).bindTooltip('Bichanakandi (34)').bindPopup('<iframe width="700" height="420" src="khaliajuri.html" frameborder="0"></iframe>').addTo(qstations);
+			
+			
+			var Stamen_Terrain = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}{r}.{ext}', {
+				attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+				subdomains: 'abcd',
+				minZoom: 0,
+				maxZoom: 18,
+				ext: 'png'
+			});
+			
+			var Esri_WorldImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+				attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+			});
+			
+			var Esri_NatGeoWorldMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}', {
+				attribution: 'Tiles &copy; Esri &mdash; National Geographic, Esri, DeLorme, NAVTEQ, UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA, iPC',
+				maxZoom: 16
+			});
+			var map = L.map('map', {
+				center: [24.5, 91.2],
+				zoom: 9,
+				layers: [Esri_WorldImagery, wlstations, qstations, basinextent],
+				fullscreenControl: true,
+				fullscreenControlOptions: {
+				  position: 'topleft'
+				},
+				timeDimension: true,
+				timeDimensionOptions: {
+					timeInterval: "2019-02-02/2019-02-07",
+					period: "PT6H",
+					validTimeRange: "00:00/18:00",
+					currentTime: Date.parse("2019-02-02T00:00:00Z"),
+					updateTimeDimension: false
+				},
+				timeDimensionControl: true,
+				timeDimensionControlOptions: {
+					autoPlay: false,
+					playerOptions: {
+						buffer: 10,
+						transitionTime: 500,
+						loop: true,
+					},
+					timeZone:"utc"
+				}
+			});
+			
+			var baseLayers = {
+				"Terrain Map":Stamen_Terrain,
+				"Imagery Map":Esri_WorldImagery,
+				"Geo Map":Esri_NatGeoWorldMap
+			};
+
+			var overlays = {
+				"Forecast Stations": wlstations,
+				"Inflow Boundary Stations": qstations,
+				"Basin Boundary": basinextent,
+				"Rivers":rivers,
+				"Haors":haors,
+			};
+
+			L.control.layers(baseLayers, overlays, {position: "topright"}).addTo(map);
+			
+			var precipbounds = [[22.8, 89.6], [25.8, 94.3]];
+			var floodbounds = [[23.8525580479, 89.8629320779], [25.3339518134, 92.5065796641]];
+			
+			var gfsprecipdata = 'data/gfsprecipitation/20190201T000000.PNG';
+			var imergprecipdata = 'data/gfsprecipitation/20190201T000000.PNG';
+			var ecmwfprecipdata = 'data/gfsprecipitation/20190201T000000.PNG';
+			var flooddata = 'data/floodmap/20190201T000000.PNG';
+			
+			var gfsLayer = L.imageOverlay(gfsprecipdata, precipbounds, {opacity: 1.0});			
+			var imergLayer = L.imageOverlay(imergprecipdata, precipbounds, {opacity: 1.0});			
+			var ecmwfLayer = L.imageOverlay(ecmwfprecipdata, precipbounds, {opacity: 1.0});			
+
+			var floodLayer = L.imageOverlay(flooddata, floodbounds, {opacity: 1.0});
+
+			L.control.layers({
+				"Nowcast Precipitation": imergLayer,
+				"Forecast Precipitation (GFS)": gfsLayer,
+				"Forecast Precipitation (ECMWF)": ecmwfLayer,
+				"Forecast Inundation": floodLayer
+			}, 
+			{}, 
+			{
+				position: 'topright',
+				collapsed: false
+			}).addTo(map);
+			
+			var overlayLayer = L.imageOverlay();
+			
+			
+			var overlayLayer = L.imageOverlay(flooddata, floodbounds, {opacity: 1.0});			
+			var elegend = L.control({
+						position: 'bottomright'
+					});
+			var getSirenaImageUrl = function(baseUrl, time) {
+				var strTime = new Date(time).toISOString();
+				xtime = strTime.substring(0, 19).replace(/-/g, '').replace(/:/g, '');
+				url = 'data/floodmap/' + xtime + '.PNG';
+				return url;
+			};
+			var testImageTimeLayer = L.timeDimension.layer.imageOverlay(overlayLayer, {
+				getUrlFunction: getSirenaImageUrl
+			});
+			testImageTimeLayer.addTo(map);
+			
+			elegend.onAdd = function(map) {
+				var div = L.DomUtil.create('div', 'legend');
+				div.innerHTML += '<center><b>Inundation Depth (m)</b></center>';
+				div.innerHTML += '<img src="img/waterlevel.png" /><br>';
+				div.innerHTML += '<center><font size="2" color="black">Dataset for <b>' + xtime + '</b></font></center>';
+				return div;
+			};
+			elegend.addTo(map);
+					
+			map.on('baselayerchange', function (e) {
+				if (e.name =="Forecast Inundation") {
+					var getSirenaImageUrl = function(baseUrl, time) {
+					var strTime = new Date(time).toISOString();
+					xtime = strTime.substring(0, 19).replace(/-/g, '').replace(/:/g, '');
+					url = 'data/floodmap/' + xtime + '.PNG';
+					return url;
+					};
+					if (map.hasLayer(overlayLayer)== true){
+						map.removeLayer(overlayLayer);
+					}
+					floodLayer = L.imageOverlay(flooddata, floodbounds, {opacity: 1.0});
+					var testImageTimeLayer = L.timeDimension.layer.imageOverlay(floodLayer, {
+						getUrlFunction: getSirenaImageUrl
+					});
+					testImageTimeLayer.addTo(map);	
+					map.removeControl(elegend);
+					elegend.onAdd = function(map) {
+					var div = L.DomUtil.create('div', 'legend');
+					div.innerHTML += '<center><b>Inundation Depth (m)</b></center>';
+					div.innerHTML += '<img src="img/waterlevel.png" /><br>';
+					div.innerHTML += '<center><font size="2" color="black">Dataset for <b>' + xtime + '</b></font></center>';
+					return div;
+					};
+					elegend.addTo(map);
+					}
+				
+				
+				if (e.name =="GFS Precipitation") {
+					if (map.hasLayer(floodLayer)== true){
+						console.log('Found one');
+						map.removeLayer(floodLayer);
+					}
+					else{
+						console.log('Lav nai')
+					}
+					var getSirenaImageUrl = function(baseUrl, time) {
+					var strTime = new Date(time).toISOString();
+					xtime = strTime.substring(0, 19).replace(/-/g, '').replace(/:/g, '');
+					url = 'data/gfsprecipitation/' + xtime + '.PNG';
+					return url;
+					};
+
+					overlayLayer = L.imageOverlay(gfsprecipdata, precipbounds, {opacity: 1.0});
+					var testImageTimeLayer = L.timeDimension.layer.imageOverlay(overlayLayer, {
+						getUrlFunction: getSirenaImageUrl
+					});
+					testImageTimeLayer.addTo(map);
+					
+					map.removeControl(elegend);
+					elegend.onAdd = function(map) {
+					var div = L.DomUtil.create('div', 'legend');
+					div.innerHTML += '<center><b>GFS Precipitation (mm)</b></center>';
+					div.innerHTML += '<img src="img/precipitation.png" /><br>';
+					div.innerHTML += '<center><font size="2" color="black">Dataset for <b>' + xtime + '</b></font></center>';
+					return div;
+					};
+					elegend.addTo(map);
+					}
+					
+				
+				
+				if (e.name =="ECMWF Precipitation") {
+					if (map.hasLayer(overlayLayer)== true){
+						map.removeLayer(overlayLayer);
+					}
+					var getSirenaImageUrl = function(baseUrl, time) {
+					var strTime = new Date(time).toISOString();
+					xtime = strTime.substring(0, 19).replace(/-/g, '').replace(/:/g, '');
+					url = 'data/ecmwfprecipitation/' + xtime + '.PNG';
+					return url;
+					};
+					map.removeLayer(overlayLayer);
+					overlayLayer = L.imageOverlay(ecmwfprecipdata, precipbounds, {opacity: 1.0});
+					var testImageTimeLayer = L.timeDimension.layer.imageOverlay(overlayLayer, {
+						getUrlFunction: getSirenaImageUrl
+					});
+					testImageTimeLayer.addTo(map);
+					
+					map.removeControl(elegend);
+					elegend.onAdd = function(map) {
+					var div = L.DomUtil.create('div', 'legend');
+					div.innerHTML += '<center><b>ECMWF Precipitation (mm)</b></center>';
+					div.innerHTML += '<img src="img/precipitation.png" /><br>';
+					div.innerHTML += '<center><font size="2" color="black">Dataset for <b>' + xtime + '</b></font></center>';
+					return div;
+					};
+					elegend.addTo(map);
+					}
+				
+				
+				if (e.name =="Nowcast Precipitation") {
+					var getSirenaImageUrl = function(baseUrl, time) {
+					var strTime = new Date(time).toISOString();
+					xtime = strTime.substring(0, 19).replace(/-/g, '').replace(/:/g, '');
+					url = 'data/imergprecipitation/' + xtime + '.PNG';
+					return url;
+					};
+					map.removeLayer(overlayLayer);
+					overlayLayer = L.imageOverlay(imergprecipdata, precipbounds, {opacity: 1.0});
+					var testImageTimeLayer = L.timeDimension.layer.imageOverlay(overlayLayer, {
+						getUrlFunction: getSirenaImageUrl
+					});
+					testImageTimeLayer.addTo(map);
+					
+					map.removeControl(elegend);
+					elegend.onAdd = function(map) {
+					var div = L.DomUtil.create('div', 'legend');
+					div.innerHTML += '<center><b>Nowcast Precipitation (mm)</b></center>';
+					div.innerHTML += '<img src="img/precipitation.png" /><br>';
+					div.innerHTML += '<center><font size="2" color="black">Dataset for <b>' + xtime + '</b></font></center>';
+					return div;
+					};
+					elegend.addTo(map);
+					}
+			});
+			
+			function notifychange() {
+				var leadtime = document.getElementById("leadtime").value;
+				var visparam = document.getElementById("visparam").value;
+				var forecast = document.getElementById("foreproduct").value;
+				var hindcast = document.getElementById("hindproduct").value;
+				console.log(hindcast + ',' + forecast + visparam + ',' + leadtime);
+				if (visparam == "foreflood"){
+				var overlayLayer = L.imageOverlay();
+				
+				var floodbounds = [[23.8525580479, 89.8629320779], [25.3339518134, 92.5065796641]];
+				
+				var gfsprecipdata = 'data/gfsprecipitation/20190201T000000.PNG';
+				var imergprecipdata = 'data/gfsprecipitation/20190201T000000.PNG';
+				var ecmwfprecipdata = 'data/gfsprecipitation/20190201T000000.PNG';
+				var flooddata = 'data/floodmap/20190204T000000.PNG';
+				var overlayLayer = L.imageOverlay(flooddata, floodbounds, {opacity: 1.0});
+				overlayLayer.addTo(map);
+				var elegend = L.control({
+							position: 'bottomright'
+						});
+						
+				map.removeControl(elegend);
+				elegend.onAdd = function(map) {
+				var div = L.DomUtil.create('div', 'legend');
+				div.innerHTML += '<center><b>Inundation Depth (m)</b></center>';
+				div.innerHTML += '<img src="img/waterlevel.png" /><br>';
+				div.innerHTML += '<center><font size="2" color="black">Dataset for <b>' + xtime + '</b></font></center>';
+				return div;
+				};
+				elegend.addTo(map);
+				}
+			}
+			
+			function backclick(){
+				console.log("Notified")
+			}
+			function playclick(){
+				console.log("Notified")
+			}
+			function stopclick(){
+				console.log("Notified")
+			}
+			function nextclick(){
+				console.log("Notified")
+			}
+		</script>
+	</body>
+</html>
